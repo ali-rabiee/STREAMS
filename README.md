@@ -12,7 +12,7 @@ STREAMS (Self-Training Robotic End-to-end Adaptive Multimodal Shared autonomy) i
 - **Trajectory Stabilization**: Significant improvements in trajectory smoothness and control, with a 96% success rate in simulations.
 - **Assistive Mode Performance**: Demonstrates an 83% success rate in user studies, with enhanced task performance and user satisfaction in real-world scenarios.
 
-## Demo:
+## Demo
 
 [Click here to watch the video!](Demo/demo.gif)
 
@@ -37,11 +37,11 @@ source venv/bin/activate
 # Step 4: Install the required packages from requirements.txt
 pip install -r requirements.txt
 ```
-# Quick start
+## Quick start
 ```bash
 python3 testDQN.py
 ```
-# Train
+## Train
 In config.py you have access to training parameters you want to set and then you can simply run:
 ```bash
 python3 trainDQN.py
