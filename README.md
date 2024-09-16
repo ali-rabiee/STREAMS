@@ -14,7 +14,30 @@ STREAMS (Self-Training Robotic End-to-end Adaptive Multimodal Shared autonomy) i
 
 ## Demo:
 
-[Demo](Demo/demo.gif)
+[Click here to watch the video!](Demo/demo.gif)
+
+## Install:
+
+```bash
+# Step 1: Clone the repository
+git clone https://github.com/ali-rabiee/STREAMS.git
+
+# Step 2: Navigate into the project directory
+cd STREAMS
+
+# Step 3: Create a virtual environment (optional but recommended)
+# For Windows:
+python -m venv venv
+venv\Scripts\activate
+
+# For macOS/Linux:
+python3 -m venv venv
+source venv/bin/activate
+
+# Step 4: Install the required packages from requirements.txt
+pip install -r requirements.txt
+```
+
 
 
 
