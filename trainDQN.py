@@ -1,11 +1,3 @@
-"""
-Baseline DQN code from: 
-    https://github.com/mahyaret/kuka_rl/blob/master/kuka_rl.ipynb
-    https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
-    https://source.coderefinery.org/JosteinDanielsen/msc-thesis/-/tree/master/kuka_eye_dqn
-
-"""
-
 import random
 import numpy as np
 from collections import namedtuple
@@ -22,8 +14,8 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torchvision.transforms as T
 
-from env_extended import jacoDiverseObjectEnv
-from utils import DQN, ReplayMemory, get_screen
+from env import jacoDiverseObjectEnv
+from utils import DQN, ReplayMemory, get_screen, add_noise
 import pybullet as pb
 from config import *
 import os
@@ -35,7 +27,7 @@ np.random.seed(0)
 
 # Load env
 env = jacoDiverseObjectEnv(actionRepeat=80, renders=False, isDiscrete=True, maxSteps=30, dv=0.02,
-                           AutoXDistance=True, AutoGrasp=True, width=64, height=64, numObjects=3)
+                           AutoXDistance=True, AutoGrasp=True, width=128, height=128, numObjects=2)
 
 env.cid = pb.connect(pb.DIRECT)
 
@@ -198,6 +190,7 @@ if __name__ == "__main__":
 
     # Assume your pre-trained model's file path
     PRETRAINED_MODEL_PATH = '/home/ali/Projects/RobaticRL/extended/main/phase2/models/FullAuto2obj_bs64_ss4_rb30000_gamma0.99_decaylf100000.0_lr0.001.pt'
+    PRETRAINED_MODEL_PATH = ""
 
     # Check if the pretrained model file exists and load it
     if os.path.isfile(PRETRAINED_MODEL_PATH):
@@ -272,6 +265,7 @@ if __name__ == "__main__":
 
             # Observe new state and relative position
             next_state, next_y_relative = get_screen(env)
+            next_y_relative = add_noise(next_y_relative, swap_prob=0.4)
 
             if not done:
                 next_stacked_states = stacked_states.copy()
@@ -335,7 +329,7 @@ if __name__ == "__main__":
             print(f"Mean Reward at episode {i_episode}: {mean_reward}")
 
         # Declare termination condition of the training
-        if i_episode >= 10000 and mean_reward > 0.999:
+        if i_episode >= 10000 and mean_reward > 0.99:
             print('Environment solved in {:d} episodes!\tAverage Score: {:.3f}'.format(i_episode+1, mean_reward))
             break
 

@@ -13,46 +13,6 @@ import pybullet as pb
 import glob
 import cv2
 
-# class DQN(nn.Module):
-#     def __init__(self, h, w, outputs, stack_size):
-#         super(DQN, self).__init__()
-#         self.stack_size = stack_size
-#         self.conv1 = nn.Conv2d(self.stack_size, 32, kernel_size=7, stride=4)
-#         self.bn1 = nn.BatchNorm2d(32)
-#         self.conv2 = nn.Conv2d(32, 64, kernel_size=5, stride=2)
-#         self.bn2 = nn.BatchNorm2d(64)
-#         self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=2)
-#         self.bn3 = nn.BatchNorm2d(64)
-#         self.conv4 = nn.Conv2d(64, 64, kernel_size=3, stride=1)
-#         self.bn4 = nn.BatchNorm2d(64)
-#         self.conv5 = nn.Conv2d(64, 64, kernel_size=3, stride=1)
-
-#         def conv2d_size_out(size, kernel_size=5, stride=2):
-#             return (size - (kernel_size - 1) - 1) // stride + 1
-        
-#         convw = conv2d_size_out(conv2d_size_out(conv2d_size_out(conv2d_size_out(conv2d_size_out(w, 7, 4), 5, 2), 3, 2), 3, 1), 3, 1)
-#         convh = conv2d_size_out(conv2d_size_out(conv2d_size_out(conv2d_size_out(conv2d_size_out(h, 7, 4), 5, 2), 3, 2), 3, 1), 3, 1)
-#         linear_input_size = convw * convh * 64 + 4  # +4 for the additional scalar input 4 stacked 
-
-#         self.linear = nn.Linear(linear_input_size, 512)
-#         self.head = nn.Linear(512, outputs)
-
-#     def forward(self, x, relative_position):
-#         x = F.relu(self.bn1(self.conv1(x)))
-#         x = F.relu(self.bn2(self.conv2(x)))
-#         x = F.relu(self.bn3(self.conv3(x)))
-#         x = F.relu(self.bn4(self.conv4(x)))
-#         x = F.relu(self.conv5(x))
-#         x = x.view(x.size(0), -1)
-#         # Concatenate the relative position with the output of the conv layers
-#         x = torch.cat((x, relative_position), dim=1)  # Ensure relative_position is correctly sized
-#         # print("=======x", x.shape)
-#         x = F.relu(self.linear(x))
-#         return self.head(x)
-
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 
 class DQN(nn.Module):
     def __init__(self, h, w, outputs, stack_size):
@@ -83,19 +43,19 @@ class DQN(nn.Module):
         self.head = nn.Linear(512, outputs)
 
     def forward(self, x, relative_position):
+
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.relu(self.bn3(self.conv3(x)))
         x = F.relu(self.bn4(self.conv4(x)))
         x = F.relu(self.conv5(x))
         x = x.view(x.size(0), -1)
-
+        
         # Embed the relative position and concatenate
         relative_position_embedded = self.relative_position_embedding((relative_position + 1).long())  # Adjust index for embedding
         # Flatten the embedded output from [1, 4, 3] to [1, 12]
         relative_position_embedded = relative_position_embedded.view(relative_position_embedded.size(0), -1)
         x = torch.cat((x, relative_position_embedded), dim=1)
-        
         x = F.relu(self.linear(x))
         return self.head(x)
 
@@ -205,7 +165,7 @@ class ObjectPlacer:
         return selected_objects_filenames
     
     
-    def _is_position_valid(self, new_pos, existing_positions, min_distance=0.15):
+    def _is_position_valid(self, new_pos, existing_positions, min_distance=0.17):
         """Check if the new position is at least min_distance away from all existing positions."""
         for pos in existing_positions:
             if abs(new_pos[1] - pos[1]) < min_distance:
@@ -225,13 +185,12 @@ class ObjectPlacer:
 
             while not valid_position_found:
         
-                # xpos = random.uniform(0.16, 0.23)
-                xpos = 0.18
+                xpos = random.uniform(0.16, 0.23)
+                # xpos = 0.18
 
                 if self._AutoXDistance:
-                    # width = 0.05 + (xpos - 0.16) / 0.7
-                    # ypos = random.uniform(-width, width)
-                    ypos = random.choice([-0.17, 0, 0.17])
+                    ypos = random.uniform(-0.17, 0.17)
+                    # ypos = random.choice([-0.17, 0, 0.17])
                 else:
                     ypos = random.uniform(0, 0.2)
 
@@ -256,6 +215,23 @@ class ObjectPlacer:
         return objectUids
 
 
+def add_noise(y_relative, swap_prob=0.3):
+    if not isinstance(y_relative, torch.Tensor):
+        raise TypeError("y_relative must be a torch.Tensor")
+    if not y_relative.is_cuda:
+        raise RuntimeError("y_relative must be on CUDA")
+
+    swap_mask = torch.rand(y_relative.size(), device=y_relative.device) < swap_prob
+    y_noisy = y_relative.clone()
+    possible_values = torch.tensor([1, -1, 0], device=y_relative.device)
+    
+    for i in range(y_relative.size(0)):  
+        if swap_mask[i]:
+            current_value = y_relative[i].item()
+            new_value = possible_values[possible_values != current_value].tolist()
+            y_noisy[i] = torch.tensor(new_value[torch.randint(0, len(new_value), (1,))], device=y_relative.device)
+
+    return y_noisy
 
 
    

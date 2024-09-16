@@ -11,16 +11,11 @@ import torchvision.transforms as T
 from config import *
 
 # From pybullet_envs.bullet.jaco_diverse_object_gym_env import jacoDiverseObjectEnv
-from env_extended import jacoDiverseObjectEnv
-from utils import DQN, get_screen
+from env import jacoDiverseObjectEnv
+from utils import DQN, get_screen, add_noise
 
 # If gpu is to be used
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-
-# Select trained model
-# modelPath = '/home/ali/Projects/RobaticRL/extended/main/phase2/models/policyDQN_phase2_bs64_ss4_rb25000_gamma0.99_decaylf20000_lr0.0001.pt'
-# modelPath = "/home/ali/Projects/RobaticRL/extended/main/phase2/models/FullAuto2obj_bs64_ss4_rb30000_gamma0.99_decaylf100000.0_lr0.001.pt"
 
 # Get stack size from model trained in learnDQN.py from the model name 
 STACK_SIZE = int(modelPath.split("ss",1)[1].split("_rb",1)[0]) #[1,4,10]
@@ -44,7 +39,7 @@ for seed in range(seeds_total):
     scores_window = collections.deque(maxlen=100)  # Last 100 scores
     # isTest=True -> perform grasping on test set of objects. Currently just mug.
     # Select renders=True for GUI rendering
-    env = jacoDiverseObjectEnv(actionRepeat=80, renders=True, isDiscrete=True, maxSteps=30, dv=0.02,
+    env = jacoDiverseObjectEnv(actionRepeat=80, renders=False, isDiscrete=True, maxSteps=30, dv=0.02,
                            AutoXDistance=True, AutoGrasp=True, width=64, height=64, numObjects=2)
     env.reset()
 
@@ -58,11 +53,13 @@ for seed in range(seeds_total):
     policy_net.load_state_dict(checkpoint['policy_net_state_dict'])
 
     # Success and failures
-    s=0
-    f=0
+    s = 0
+    f = 0
+    
     for i_episode in range(episode):
         env.reset()
-        state, y_relative = get_screen(env)  # Adjusted to new function
+        state, y_relative = get_screen(env)  
+        
         stacked_states = collections.deque(STACK_SIZE*[state], maxlen=STACK_SIZE)
         stacked_y_relatives = collections.deque(STACK_SIZE*[y_relative], maxlen=STACK_SIZE)  # Track y_relative
         
@@ -72,13 +69,22 @@ for seed in range(seeds_total):
             
             # Select and perform an action
             # Now using the policy network with both state and y_relative
-            action = policy_net(stacked_states_t, stacked_y_relatives_t).max(1)[1].view(1, 1)
+            if MODE == "STREAM":
+                action = policy_net(stacked_states_t, stacked_y_relatives_t).max(1)[1].view(1, 1)
+                
+            else:
+                action = y_relative.clone()
+                action[(action == 0)] = 2
+                action[(action == -1)] = 0
+                # print(action)
+                
             _, reward, done, _ = env.step(action.item())
             
-            # Observe new state and y_relative
-            next_state, next_y_relative = get_screen(env)
-            stacked_states.append(next_state)
-            stacked_y_relatives.append(next_y_relative)  # Update stacked y_relatives
+            # Observe new state 
+            state, y_relative = get_screen(env)
+            y_relative = add_noise(y_relative, swap_prob=0.3)
+            stacked_states.append(state)
+            stacked_y_relatives.append(y_relative)  # Update stacked y_relatives
             
             if done:
                 break
