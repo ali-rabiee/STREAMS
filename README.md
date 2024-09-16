@@ -14,8 +14,8 @@ STREAMS (Self-Training Robotic End-to-end Adaptive Multimodal Shared autonomy) i
 
 ## Demo:
 
-[Click here to watch the video](Demo/camera_view.mp4)
-[Click here to watch the video](Demo/side_view.mp4)
+[Demo](Demo/demo.gif)
+
 
 
 
