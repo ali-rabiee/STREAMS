@@ -37,7 +37,15 @@ source venv/bin/activate
 # Step 4: Install the required packages from requirements.txt
 pip install -r requirements.txt
 ```
-
+# Quick start
+```bash
+python3 testDQN.py
+```
+# Train
+In config.py you have access to training parameters you want to set and then you can simply run:
+```bash
+python3 trainDQN.py
+```
 
 
 
