@@ -14,7 +14,7 @@ STREAMS (Self-Training Robotic End-to-end Adaptive Multimodal Shared autonomy) i
 
 ## Demo
 
-[Click here to watch the video!](Demo/demo.gif)
+[Click here to watch the video!]([Demo/demo.gif](https://github.com/ali-rabiee/STREAMS/blob/main/Demo/demo.gif?raw=true)
 
 ## Install:
 
