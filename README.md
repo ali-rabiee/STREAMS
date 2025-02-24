@@ -13,7 +13,11 @@ STREAMS (Self-Training Robotic End-to-end Adaptive Multimodal Shared autonomy) i
 - **Assistive Mode Performance**: Demonstrates an 83% success rate in user studies, with enhanced task performance and user satisfaction in real-world scenarios.
 
 ## Demo
-[STREAMS_demo.webm](https://github.com/user-attachments/assets/45b7ecff-6cbe-4a8e-9897-3574fb32d36a)
+[STREAMS_demo.webm](https://github.com/user-attachments/assets/5a5dfd4d-bb7b-4dea-8ce9-df7534e6cc18)
+
+
+
+
 
 
 ## Install:
